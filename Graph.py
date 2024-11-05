@@ -1,0 +1,272 @@
+import math
+from queue import Queue
+from queue import PriorityQueue
+
+import networkx as nx
+from matplotlib import pyplot as plt
+from networkx.classes import Graph
+from Node import Node
+
+class Graph:
+    def __init__(self, directed=False):
+        self.nodes = []
+        self.directed = directed
+        self.graph = {} # (node1,node2) -> custo
+        self.heuristics = {}
+
+    def get_node_by_id(self, id):
+
+        for node in self.nodes:
+            if node.getId() == id:
+                return node
+
+        return None
+
+    def print_edge(self):
+        listA = ""
+        list = self.graph.keys()
+        for node in list:
+            for (node2, weight) in self.graph[node]:
+                listA = listA + node + " ->" + node2 + " weight:" + str(weight) + "\n"
+        return listA
+
+    def add_edge(self, node1, node2, weight):
+        n1 = node1.getId()
+        n2 = node2.getId()
+
+        if self.get_node_by_id(n1) is None:
+            # ver depois se aqui é que se tem de dar o id ao node
+            self.nodes.append(node1)
+            self.graph[n1] = []
+
+        if self.get_node_by_id(n2) is None:
+            # ver depois se aqui é que se tem de dar o id ao node
+            self.nodes.append(node2)
+            self.graph[n2] = []
+
+        self.graph[n1].append((n2, weight))
+
+        if not self.directed:
+            self.graph[n2].append((n1, weight))
+
+    def get_nodes(self):
+        return self.nodes
+
+    def get_arc_cost(self, node1, node2):
+        costT = math.inf
+        a = self.graph[node1]  # lista de arestas para aquele nodo
+        for (node, weight) in a:
+            if node == node2:
+                costT = weight
+
+        return costT
+
+    def calculate_cost(self, path):
+        # path é uma lista de nodos
+        test = path
+        cost = 0
+        i = 0
+        while i + 1 < len(test):
+            cost = cost + self.get_arc_cost(test[i], test[i + 1])
+            i = i + 1
+        return cost
+
+    def add_heuristic(self, node, estima):
+        if node in self.nodes:
+            self.heuristics[node] = estima
+
+    def heuristic(self):
+        nodes = self.graph.keys()
+        for n in nodes:
+            self.heuristics[n] = 1  # define a heuristica para cada nodo como 1
+        return True  # A atribuição de heuristica foi concluida com sucesso
+
+    def get_heuristic(self, node):
+        return self.heuristics[node]
+
+    def getNeighbours(self, node):
+        list = []
+        for (adjacent, weight) in self.graph[node]:
+            list.append((adjacent, weight))
+        return list
+
+    def draw(self):
+        list_v = self.nodes
+        g = nx.Graph()
+
+        for node in list_v:
+            n = node.getId()
+            g.add_node(n)
+            for (adjacent, weight) in self.graph[n]:
+                lista = (n, adjacent)
+                # lista_a.append(lista)
+                g.add_edge(n, adjacent, weight=weight)
+
+        pos = nx.spring_layout(g)
+        nx.draw_networkx(g, pos, with_labels=True, font_weight='bold')
+        labels = nx.get_edge_attributes(g, 'weight')
+        nx.draw_networkx_edge_labels(g, pos, edge_labels=labels)
+        plt.draw()
+        plt.show()
+
+    # Algoritmos de procura
+
+    def procura_DFS(self, start, end, path=[], visited=set()):
+        path.append(start)
+        visited.add(start)
+
+        if start == end:
+            custoT = self.calculate_cost(path)
+            return (path, custoT)
+        for (adjacent, peso) in self.graph[start]:
+            if adjacent not in visited:
+                result = self.procura_DFS(adjacent, end, path, visited)
+                if result is not None:
+                    return result
+        path.pop()
+        return None
+
+    def procura_BFS(self, start, end):
+
+        visited = set()
+        fila = Queue()
+
+        fila.put(start)
+        visited.add(start)
+
+        parent = dict()
+        parent[start] = None
+
+        path_found = False
+
+        while not fila.empty() and path_found == False:
+            node_atual = fila.get()
+            if node_atual == end:
+                path_found = True
+            else:
+                for (adjacent, peso) in self.graph[node_atual]:
+                    if adjacent not in visited:
+                        fila.put(adjacent)
+                        parent[adjacent] = node_atual
+                        visited.add(adjacent)
+        path = []
+        if path_found:
+            path.append(end)
+            while parent[end] is not None:
+                path.append(parent[end])
+                parent = parent[end]
+                end = parent[end]
+
+            path.reverse()
+            cost = self.calculate_cost(path)
+
+        return (path, cost)
+
+    def procura_Greedy(self, start, end):
+        open_list = set([start])  # lista de nodos visitados, mas com vizinhos que ainda não foram visitados
+        closed_list = set([])  # lista de nodos visitados
+        parents = {}  # dicionário que mantem o antecessor de um nodo
+        parents[start] = start
+        while len(open_list) > 0:
+            n = None
+            # encontra nodo com a menor heuristica
+            for v in open_list:
+                if n is None or self.heuristics[v] < self.heuristics[n]:
+                    n = v
+            if n is None:
+                print('Path does not exist!')
+                return None
+            if n == end:
+                recons_path = []
+                while parents[n] != n:
+                    recons_path.append(n)
+                    n = parents[n]
+                recons_path.append(start)
+                recons_path.reverse()
+                return (recons_path, self.calculate_cost(recons_path))
+            for (m, weight) in self.getNeighbours(n):
+                if m not in open_list and m not in closed_list:
+                    open_list.add(m)
+                    parents[m] = n
+            open_list.remove(n)
+            closed_list.add(n)
+        print('Path does not exist!')
+        return None
+
+    def procura_aStar(self, start, end):
+        # open_list is a list of nodes which have been visited, but who's neighbors
+        # haven't all been inspected, starts off with the start node
+        # closed_list is a list of nodes which have been visited
+        # and who's neighbors have been inspected
+        open_list = {start}
+        closed_list = set([])
+
+        # g contains current distances from start_node to all other nodes
+        # the default value (if it's not found in the map) is +infinity
+        g = {}
+
+        g[start] = 0
+
+        # parents contains an adjacency map of all nodes
+        parents = {}
+        parents[start] = start
+        # n = None
+        while len(open_list) > 0:
+            # find a node with the lowest value of f() - evaluation function
+            n = None
+            # find a node with the lowest value of f() - evaluation function
+            for v in open_list:
+                if n is None or g[v] + self.get_heuristic(v) < g[n] + self.get_heuristic(n):
+                    n = v
+            if n is None:
+                print('Path does not exist!')
+                return None
+            # if the current node is the stop_node
+            # then we begin reconstructin the path from it to the start_node
+            if n == end:
+                reconst_path = []
+
+                while parents[n] != n:
+                    reconst_path.append(n)
+                    n = parents[n]
+
+                reconst_path.append(start)
+                reconst_path.reverse()
+
+                return (reconst_path, self.calculate_cost(reconst_path))
+
+            # for all neighbors of the current node do
+            for (m, weight) in self.getNeighbours(n):  # definir função getneighbours  tem de ter um par nodo peso
+                # if the current node isn't in both open_list and closed_list
+                # add it to open_list and note n as it's parent
+                if m not in open_list and m not in closed_list:
+                    open_list.add(m)
+                    parents[m] = n
+                    g[m] = g[n] + weight
+                # otherwise, check if it's quicker to first visit n, then m
+                # and if it is, update parent data and g data
+                # and if the node was in the closed_list, move it to open_list
+                else:
+                    if g[m] > g[n] + weight:
+                        g[m] = g[n] + weight
+                        parents[m] = n
+
+                        if m in closed_list:
+                            closed_list.remove(m)
+                            open_list.add(m)
+            # remove n from the open_list, and add it to closed_list
+            # because all of his neighbors were inspected
+            open_list.remove(n)
+            closed_list.add(n)
+
+        print('Path does not exist!')
+        return None
+
+
+
+
+
+
+
+
+
