@@ -11,7 +11,7 @@ class Graph:
     def __init__(self, directed=False):
         self.nodes = []
         self.directed = directed
-        self.graph = {} # (node1,node2) -> custo
+        self.graph = {} # (node1,node2) -> (tipo,custo) //tipo-road,water,air custo-distancia
         self.heuristics = {}
 
     def get_node_by_id(self, id):
@@ -26,11 +26,11 @@ class Graph:
         listA = ""
         list = self.graph.keys()
         for node in list:
-            for (node2, weight) in self.graph[node]:
+            for (node2, (type,weight)) in self.graph[node]:
                 listA = listA + node + " ->" + node2 + " weight:" + str(weight) + "\n"
         return listA
 
-    def add_edge(self, node1, node2, weight):
+    def add_edge(self, node1, node2, type, weight):
         n1 = node1.getId()
         n2 = node2.getId()
 
@@ -44,10 +44,10 @@ class Graph:
             self.nodes.append(node2)
             self.graph[n2] = []
 
-        self.graph[n1].append((n2, weight))
+        self.graph[n1].append((n2, (type,weight)))
 
         if not self.directed:
-            self.graph[n2].append((n1, weight))
+            self.graph[n2].append((n1, (type,weight)))
 
     def get_nodes(self):
         return self.nodes
@@ -55,7 +55,7 @@ class Graph:
     def get_arc_cost(self, node1, node2):
         costT = math.inf
         a = self.graph[node1]  # lista de arestas para aquele nodo
-        for (node, weight) in a:
+        for (node, (type,weight)) in a:
             if node == node2:
                 costT = weight
 
