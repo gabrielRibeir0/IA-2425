@@ -1,4 +1,5 @@
 import math
+import time
 from queue import Queue
 from queue import PriorityQueue
 
@@ -11,8 +12,9 @@ class Graph:
     def __init__(self, directed=False):
         self.nodes = []
         self.directed = directed
-        self.graph = {} # (node1,node2) -> (tipo,custo) //tipo-road,water,air custo-distancia
+        self.graph = {} # node1 -> (node2,(type,distance)) //type-road,water,air
         self.heuristics = {}
+        self.temporarily_blocked_edges = {}
 
     def get_node_by_id(self, id):
 
@@ -86,7 +88,7 @@ class Graph:
 
     def getNeighbours(self, node):
         list = []
-        for (adjacent, weight) in self.graph[node]:
+        for (adjacent, (type,weight)) in self.graph[node]:
             list.append((adjacent, weight))
         return list
 
@@ -97,7 +99,7 @@ class Graph:
         for node in list_v:
             n = node.getId()
             g.add_node(n)
-            for (adjacent, weight) in self.graph[n]:
+            for (adjacent, (type,weight)) in self.graph[n]:
                 lista = (n, adjacent)
                 # lista_a.append(lista)
                 g.add_edge(n, adjacent, weight=weight)
@@ -108,6 +110,38 @@ class Graph:
         nx.draw_networkx_edge_labels(g, pos, edge_labels=labels)
         plt.draw()
         plt.show()
+
+        def block_edge(self, node1, node2, temporary_duration=None): # duração está em horas
+            if node1 in self.graph:
+                for (adjacent, (type,weight)) in self.graph[node1]:
+                    if adjacent == node2:
+                        if temporary_duration: # bloquear temporariamente
+                            unblock_time = time.time() + (temporary_duration*3600) # passar horas para segundos
+                            self.temporarily_blocked_roads[node1] = (node2,(type,weight,unblock_time))
+                            if not self.directed:
+                                self.temporarily_blocked_roads[node2] = (node1,(type,weight,unblock_time))
+                        else: # apagar para sempre
+                            self.graph[node1].remove(adjacent,(type,weight))
+                            if not self.directed:
+                                self.graph[node2].remove(adjacent,(type,weight))
+
+
+        def reenable_roads(self): # provavelmente vai ter de funcionar em loop ou de x em x tempo
+            current_time = time.time()
+            edges_to_restore = []
+
+            for (node1,(node2,(type,weight,unblock_time))) in self.temporarily_blocked_roads:
+                if current_time >= unblock_time:
+                    edges_to_restore.append((node1,node2,type,weight))
+
+
+            for node1,node2,type,weight in edges_to_restore:
+                self.add_edge(node1, node2, type, weight)
+                del self.temporarily_blocked_roads[node1]
+                # ver melhor se é preciso meter algum caso para self directed
+
+    # ver se faz sentido as alterações do clima alterarem a distancia(de forma a demorar mais)
+    # ou se faz mais sentido alterarem a velocidade média dos veículos
 
     # Algoritmos de procura
 
