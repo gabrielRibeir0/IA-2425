@@ -1,5 +1,3 @@
-from numpy.ma.extras import average
-
 class Vehicle:
     def __init__(self, id, type,gas, capacity, location, availability): #volume da capacidade??
         self.id = id

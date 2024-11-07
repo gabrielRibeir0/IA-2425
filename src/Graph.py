@@ -1,4 +1,6 @@
+import csv
 import math
+import os
 import time
 from queue import Queue
 from queue import PriorityQueue
@@ -111,6 +113,47 @@ class Graph:
         plt.draw()
         plt.show()
 
+        def loadGraphFile(self, file_name):
+            current_directory = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(current_directory, '..', 'graphs', file_name)
+
+            if not os.path.exists(file_path):
+                print("Error: File '{file_name}' not found in 'graphs' directory.")
+                return
+            try:
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        line = line.strip()
+                        if line.startswith("#") or not line:  # Ignore comments and empty lines
+                            continue
+                        node1, node2, connection_type, weight = line.split()
+                        weight = int(weight)
+                        self.add_edge(node1, node2, connection_type, weight)
+                print("Graph loaded successfully.")
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+        def loadNodeFile(self, file_name):
+            current_directory = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(current_directory, '..', 'input', file_name)
+
+            if not os.path.exists(file_path):
+                print("Error: File '{file_name}' not found in 'input' directory.")
+                return
+            try:
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        line = line.strip()
+                        if line.startswith("#") or not line:  # Ignore comments and empty lines
+                            continue
+                        id, priority, population= line.split()
+                        population = int(population)
+                        node = Node(id, priority, population)
+                        self.nodes.append(node)
+                print("Graph loaded successfully.")
+            except Exception as e:
+                print("An error occurred: {e}")
+
         def block_edge(self, node1, node2, temporary_duration=None): # duração está em horas
             if node1 in self.graph:
                 for (adjacent, (type,weight)) in self.graph[node1]:
@@ -126,7 +169,7 @@ class Graph:
                                 self.graph[node2].remove(adjacent,(type,weight))
 
 
-        def reenable_roads(self): # provavelmente vai ter de funcionar em loop ou de x em x tempo
+        def reenable_edges(self): # provavelmente vai ter de funcionar em loop ou de x em x tempo
             current_time = time.time()
             edges_to_restore = []
 
