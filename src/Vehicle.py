@@ -1,10 +1,10 @@
 class Vehicle:
-    def __init__(self, id, type,gas, capacity, location, availability): #volume da capacidade??
+    def __init__(self, id, type,gas,location): #volume da capacidade??
         self.id = id
-        self.weight = capacity #peso atual
+        self.weight = 0
         self.gas = gas # combustivel disponivel
         self.location = location
-        self.availability = availability
+        self.availability = True
         self.type = type
         if self.type == "Car":
             self.maxGas = 60
