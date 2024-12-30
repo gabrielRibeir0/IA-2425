@@ -1,13 +1,10 @@
-import csv
 import math
 import os
 import time
 from queue import Queue
-from queue import PriorityQueue
 
 import networkx as nx
 from matplotlib import pyplot as plt
-from networkx.classes import Graph
 from Node import Node
 
 class Graph:

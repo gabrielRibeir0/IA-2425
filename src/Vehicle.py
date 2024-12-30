@@ -1,5 +1,5 @@
 class Vehicle:
-    def __init__(self, id, type,gas,location): #volume da capacidade??
+    def __init__(self, id, type, gas, location): #volume da capacidade??
         self.id = id
         self.weight = 0
         self.gas = gas # combustivel disponivel
@@ -28,7 +28,6 @@ class Vehicle:
             self.gasConsume = 1
 
     #se calhar fazia sentido a velocidade variar consoante o peso que se leva
-
 
     def validate_weight(self,packageweight):
         if self.maxcapacity - self.weight >= packageweight:
