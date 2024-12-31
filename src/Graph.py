@@ -1,6 +1,7 @@
 import math
 import os
 import time
+import json
 from queue import Queue
 
 import networkx as nx
@@ -32,20 +33,7 @@ class Graph:
                 listA = listA + node + " ->" + node2 + " weight:" + str(weight) + "\n"
         return listA
 
-    def add_edge(self, node1, node2, type, weight):
-        n1 = node1.getId()
-        n2 = node2.getId()
-
-        if self.get_node_by_id(n1) is None:
-            # ver depois se aqui é que se tem de dar o id ao node
-            self.nodes.append(node1)
-            self.graph[n1] = []
-
-        if self.get_node_by_id(n2) is None:
-            # ver depois se aqui é que se tem de dar o id ao node
-            self.nodes.append(node2)
-            self.graph[n2] = []
-
+    def add_edge(self, n1, n2, type, weight):
         self.graph[n1].append((n2, (type,weight)))
 
         if not self.directed:
@@ -111,118 +99,107 @@ class Graph:
         plt.draw()
         plt.show()
 
-        def loadGraphFile(self, file_name):
-            current_directory = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(current_directory, '..', 'graphs', file_name)
+    def loadGraph(self):
+        filepath = os.path.join(os.path.dirname(__file__), '..', 'data', 'mapa.json')
 
-            if not os.path.exists(file_path):
-                print("Error: File '{file_name}' not found in 'graphs' directory.")
-                return False
-            try:
-                with open(file_path, 'r') as file:
-                    for line in file:
-                        line = line.strip()
-                        if line.startswith("#") or not line:  # Ignore comments and empty lines
-                            continue
-                        node1, node2, connection_type, weight = line.split()
-                        weight = int(weight)
-                        self.add_edge(node1, node2, connection_type, weight)
-                print("Graph loaded successfully.")
-                return True
-            except Exception as e:
-                print(f"An error occurred: {e}")
-                return False
+        with open(filepath, 'r') as file:
+            loaded_data = json.load(file)
 
-        def loadNodeFile(self, file_name):
-            current_directory = os.path.dirname(os.path.abspath(__file__))
-            file_path = os.path.join(current_directory, '..', 'input', file_name)
+        for node in loaded_data["nodes"]:
+            id = node.get("id")
+            population = node.get("population")
+            priority = node.get("priority")
+            timeLimit = node.get("timeLimit")
+            needs = node.get("needs")
+            newNode = Node(id, population, priority, timeLimit, needs)
+            self.nodes.append(newNode)
+            self.graph[id] = []
 
-            if not os.path.exists(file_path):
-                print("Error: File '{file_name}' not found in 'input' directory.")
-                return
-            try:
-                with open(file_path, 'r') as file:
-                    for line in file:
-                        line = line.strip()
-                        if line.startswith("#") or not line:  # Ignore comments and empty lines
-                            continue
-                        id, priority, population= line.split()
-                        population = int(population)
-                        node = Node(id, priority, population)
-                        self.nodes.append(node)
-                print("Graph loaded successfully.")
-            except Exception as e:
-                print("An error occurred: {e}")
+        for edge in loaded_data["edges"]:
+            source = edge["source"]
+            target = edge["target"]
+            distance = edge["distance"]
+            type = edge["type"]
+            self.add_edge(source, target, type, distance)
 
-        def block_edge(self, node1, node2, temporary_duration=None): # duração está em horas
-            if node1 in self.graph:
-                for (adjacent, (type,weight)) in self.graph[node1]:
-                    if adjacent == node2:
-                        if temporary_duration: # bloquear temporariamente
-                            unblock_time = time.time() + (temporary_duration*3600) # passar horas para segundos
-                            self.temporarily_blocked_edges[node1] = (node2,(type,weight,unblock_time))
-                            self.graph[node1].remove(adjacent, (type, weight))
-                            if not self.directed:
-                                self.temporarily_blocked_roads[node2] = (node1, (type, weight, unblock_time))
-                                self.graph[node2].remove(adjacent, (type, weight))
-                        else: # apagar para sempre
-                            self.graph[node1].remove(adjacent, (type, weight))
-                            if not self.directed:
-                                self.graph[node2].remove(adjacent,(type,weight))
-                        break
+        #for node, heuristic_value in loaded_data["bestpath"].items():
+        #    self.add_heuristica(node, heuristic_value, "bestpath")
 
+        #for node, heuristic_value in loaded_data["transit"].items():
+        #    self.add_heuristica(node, heuristic_value, "transit")
 
-        def reenable_edges(self): # provavelmente vai ter de funcionar em loop ou de x em x tempo
-            current_time = time.time()
-            edges_to_restore = []
+        #for node, heuristic_value in loaded_data["roadquality"].items():
+        #    self.add_heuristica(node, heuristic_value, "roadquality")
 
-            for node1,(node2,(type,weight,unblock_time)) in self.temporarily_blocked_edges.items():
-                if current_time >= unblock_time:
-                    edges_to_restore.append((node1,node2,type,weight))
-
-
-            for node1,node2,type,weight in edges_to_restore:
-                self.add_edge(node1, node2, type, weight)
-                del self.temporarily_blocked_edges[node1]
-                # ver melhor se é preciso meter algum caso para self directed
-
-        def delay_edge(self, node1, node2, delay_duration):
-            if node1 in self.graph:
-                for adjacent, (edge_type, weight) in enumerate(self.graph[node1]):
-                    if adjacent == node2:
-                        new_weight = weight*2 # duplica a distancia -> vai duplicar o tempo a percorrer
-                        self.graph[node1].remove((node2, (edge_type, weight)))
-                        self.graph[node1].append((node2, (edge_type, new_weight)))
-                        unblock_time = time.time() + (delay_duration * 3600)
-                        self.delayed_edges[node1] = (node2, (edge_type, weight, unblock_time))
-
+    def block_edge(self, node1, node2, temporary_duration=None): # duração está em horas
+        if node1 in self.graph:
+            for (adjacent, (type,weight)) in self.graph[node1]:
+                if adjacent == node2:
+                    if temporary_duration: # bloquear temporariamente
+                        unblock_time = time.time() + (temporary_duration*3600) # passar horas para segundos
+                        self.temporarily_blocked_edges[node1] = (node2,(type,weight,unblock_time))
+                        self.graph[node1].remove(adjacent, (type, weight))
                         if not self.directed:
-                            self.graph[node2].remove((node1, (edge_type, weight)))
-                            self.graph[node2].append((node1, (edge_type, new_weight)))
-                            self.delayed_edges[node2] = (node1, (edge_type, weight, unblock_time))
-                        break
-
-        def reenable_delayed_edges(self):
-            current_time = time.time()
-            edges_to_restore = []
-
-            for node1, (node2, (edge_type, original_weight, unblock_time)) in self.delayed_edges.items():
-                if current_time >= unblock_time:
-                    edges_to_restore.append((node1, node2, edge_type, original_weight))
-
-            for node1, node2, edge_type, original_weight in edges_to_restore:
-                # Find and restore the original weight
-                for adjacent, (edge_type, weight) in self.graph[node1]:
-                    if adjacent == node2:
-                        self.graph[node1].remove(adjacent, (edge_type, weight))
-                        self.graph[node1].append((adjacent, (edge_type, original_weight)))
-                        del self.delayed_edges[node1]
-
+                            self.temporarily_blocked_roads[node2] = (node1, (type, weight, unblock_time))
+                            self.graph[node2].remove(adjacent, (type, weight))
+                    else: # apagar para sempre
+                        self.graph[node1].remove(adjacent, (type, weight))
                         if not self.directed:
-                            self.graph[node2].remove(node1, (edge_type, weight))
-                            self.graph[node2].append((node1, (edge_type, original_weight)))
-                            del self.delayed_edges[node2]
-                        break
+                            self.graph[node2].remove(adjacent,(type,weight))
+                    break
+
+
+    def reenable_edges(self): # provavelmente vai ter de funcionar em loop ou de x em x tempo
+        current_time = time.time()
+        edges_to_restore = []
+
+        for node1,(node2,(type,weight,unblock_time)) in self.temporarily_blocked_edges.items():
+            if current_time >= unblock_time:
+                edges_to_restore.append((node1,node2,type,weight))
+
+
+        for node1,node2,type,weight in edges_to_restore:
+            self.add_edge(node1, node2, type, weight)
+            del self.temporarily_blocked_edges[node1]
+            # ver melhor se é preciso meter algum caso para self directed
+
+    def delay_edge(self, node1, node2, delay_duration):
+        if node1 in self.graph:
+            for adjacent, (edge_type, weight) in enumerate(self.graph[node1]):
+                if adjacent == node2:
+                    new_weight = weight*2 # duplica a distancia -> vai duplicar o tempo a percorrer
+                    self.graph[node1].remove((node2, (edge_type, weight)))
+                    self.graph[node1].append((node2, (edge_type, new_weight)))
+                    unblock_time = time.time() + (delay_duration * 3600)
+                    self.delayed_edges[node1] = (node2, (edge_type, weight, unblock_time))
+
+                    if not self.directed:
+                        self.graph[node2].remove((node1, (edge_type, weight)))
+                        self.graph[node2].append((node1, (edge_type, new_weight)))
+                        self.delayed_edges[node2] = (node1, (edge_type, weight, unblock_time))
+                    break
+
+    def reenable_delayed_edges(self):
+        current_time = time.time()
+        edges_to_restore = []
+
+        for node1, (node2, (edge_type, original_weight, unblock_time)) in self.delayed_edges.items():
+            if current_time >= unblock_time:
+                edges_to_restore.append((node1, node2, edge_type, original_weight))
+
+        for node1, node2, edge_type, original_weight in edges_to_restore:
+            # Find and restore the original weight
+            for adjacent, (edge_type, weight) in self.graph[node1]:
+                if adjacent == node2:
+                    self.graph[node1].remove(adjacent, (edge_type, weight))
+                    self.graph[node1].append((adjacent, (edge_type, original_weight)))
+                    del self.delayed_edges[node1]
+
+                    if not self.directed:
+                        self.graph[node2].remove(node1, (edge_type, weight))
+                        self.graph[node2].append((node1, (edge_type, original_weight)))
+                        del self.delayed_edges[node2]
+                    break
 
     # ver se faz sentido as alterações do clima alterarem a distancia(de forma a demorar mais)
     # ou se faz mais sentido alterarem a velocidade média dos veículos
@@ -379,12 +356,3 @@ class Graph:
 
         print('Path does not exist!')
         return None
-
-
-
-
-
-
-
-
-

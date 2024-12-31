@@ -1,0 +1,15 @@
+{
+    "nodes":[
+        {"id":"base"},
+        {"id":"Z1","population":1000, "priority":0.1, "timeLimit":10, "needs":{ "food": 10, "medicine": 10, "water": 10}},
+        {"id":"Z2","population":1000, "priority":0.1, "timeLimit":10, "needs":{ "food": 10, "medicine": 10}},
+        {"id":"Z3","population":1000, "priority":0.1, "needs":{ "food": 10, "water": 10}},
+        {"id":"Z4","population":1000, "priority":0.1, "needs":{ "medicine": 10, "water": 10}}
+    ],
+    "edges":[
+        {"source":"base", "target":"Z1", "distance":10, "type":"road"},
+        {"source":"base", "target":"Z2", "distance":10, "type":"air"},
+        {"source":"Z1", "target":"Z3", "distance":10, "type":"water"},
+        {"source":"Z2", "target":"Z4", "distance":10, "type":"road"}
+    ]
+}
