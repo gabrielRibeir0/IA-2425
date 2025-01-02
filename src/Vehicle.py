@@ -10,6 +10,7 @@ class Status(Enum):
     MOVING = 0
     INZONE = 1
     AVAILABLE = 2
+    FINISHED = 3
     
 class Vehicle:
     def __init__(self, id, type):

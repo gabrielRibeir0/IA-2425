@@ -1,15 +1,21 @@
 {
     "nodes":[
         {"id":"base"},
-        {"id":"Z1","population":1000, "priority":0.1, "timeLimit":10, "needs":{ "food": 10, "medicine": 10, "water": 10}},
-        {"id":"Z2","population":1000, "priority":0.1, "timeLimit":10, "needs":{ "food": 10, "medicine": 10}},
-        {"id":"Z3","population":1000, "priority":0.1, "needs":{ "food": 10, "water": 10}},
-        {"id":"Z4","population":1000, "priority":0.1, "needs":{ "medicine": 10, "water": 10}}
+        {"id":"Z1","population":1000, "priority":0.1, "timeLimit":10, "needs":30},
+        {"id":"Z2","population":1000, "priority":0.1, "timeLimit":10, "needs":10},
+        {"id":"Z3","population":1000, "priority":0.1, "needs":500},
+        {"id":"Z4","population":1000, "priority":0.1, "needs":70}
     ],
     "edges":[
         {"source":"base", "target":"Z1", "distance":10, "type":"road"},
         {"source":"base", "target":"Z2", "distance":10, "type":"air"},
         {"source":"Z1", "target":"Z3", "distance":10, "type":"water"},
         {"source":"Z2", "target":"Z4", "distance":10, "type":"road"}
+    ],
+    "heuristics":[
+        {"node":"Z1", "value":15},
+        {"node":"Z2", "value":10},
+        {"node":"Z3", "value":20},
+        {"node":"Z4", "value":30}
     ]
 }

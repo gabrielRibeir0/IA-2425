@@ -122,14 +122,14 @@ class Graph:
             type = edge["type"]
             self.add_edge(source, target, type, distance)
 
-        #for node, heuristic_value in loaded_data["bestpath"].items():
-        #    self.add_heuristica(node, heuristic_value, "bestpath")
-
-        #for node, heuristic_value in loaded_data["transit"].items():
-        #    self.add_heuristica(node, heuristic_value, "transit")
-
-        #for node, heuristic_value in loaded_data["roadquality"].items():
-        #    self.add_heuristica(node, heuristic_value, "roadquality")
+        for heuristic in loaded_data["heuristics"]:
+            node = heuristic["node"]
+            heuristic_value = heuristic["value"]
+            self.add_heuristic(node, heuristic_value)
+    
+    def checkBlockedEdges(self, path):
+        #TODO
+        return False
 
     def block_edge(self, node1, node2, temporary_duration=None): # duração está em horas
         if node1 in self.graph:
