@@ -1,35 +1,49 @@
+from enum import Enum
+
+class VehicleType(Enum):
+    CAR = "car"
+    TRUCK = "truck"
+    BOAT = "boat"
+    HELICOPTER = "helicopter"
+    
+    
+class Status(Enum):
+    AVAILABLE = 0
+    MOVING = 1
+    INZONE = 2
+
 class Vehicle:
-    def __init__(self, id, type, gas, location): #volume da capacidade??
+    def __init__(self, id, type):
         self.id = id
-        self.weight = 0
-        self.gas = gas # combustivel disponivel
-        self.location = location
-        self.availability = True
+        self.weight = {"food": 0, "water": 0, "medicine": 0}
+        self.status = Status.AVAILABLE
         self.type = type
-        if self.type == "Car":
+        if self.type == VehicleType.CAR:
             self.maxGas = 60
             self.maxcapacity = 400 #kg
             self.averageSpeed = 90 #km/h
             self.gasConsume = 0.08 #l/km
-        elif self.type == "Truck":
-            self.maxGas = 350
-            self.maxcapacity = 15000
+        elif self.type == VehicleType.TRUCK:
+            self.maxGas = 450
+            self.maxcapacity = 10000
             self.averageSpeed = 60
             self.gasConsume = 0.4
-        elif self.type == "Boat":
-            self.maxGas = 120
+        elif self.type == VehicleType.BOAT:
+            self.maxGas = 140
             self.maxcapacity = 1000
-            self.averageSpeed = 25
+            self.averageSpeed = 40
             self.gasConsume = 0.5
-        else:  # self.vehicleType == "Plane"
+        else:
             self.maxGas = 300
-            self.maxcapacity = 5
+            self.maxcapacity = 500
             self.averageSpeed = 250
             self.gasConsume = 1
-
+        self.gas = self.maxGas
+        self.location = "base"
+        
     #se calhar fazia sentido a velocidade variar consoante o peso que se leva
 
-    def validate_weight(self,packageweight):
+    def validate_weight(self, packageweight):
         if self.maxcapacity - self.weight >= packageweight:
             return True
 
