@@ -5,22 +5,19 @@ class Node:
         self.priority = priority
         self.timeLimit = timeLimit
         if needs is None: 
-            self.needs = {} 
+            self.needs = 0
         else: 
             self.needs = needs
-        self.current_supplies = {}
-        for resource in self.needs:
-            self.current_supplies[resource] = 0
+        self.current_supplies = 0
+        self.expected_supplies = 0
 
     def isUnserviced(self):
-        if not self.needs:
+        if self.current_supplies < self.needs and self.expected_supplies < self.needs:
             return True
-
-        for resource in self.needs:
-            if self.current_supplies[resource] < self.needs[resource]:
-                return True
         return False
 
     def getId(self):
         return self.id
 
+    def getWeightNeeds(self):
+        return self.needs
