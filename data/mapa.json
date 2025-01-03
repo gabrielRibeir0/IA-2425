@@ -3,7 +3,7 @@
         {"id":"base"},
         {"id":"Z01","population":1800, "severity":0.6, "timeLimit":3, "needs":{"food":200, "water":50, "medicine":5}},
         {"id":"Z02","population":3000, "severity":0.9, "timeLimit":5, "needs":{"food":180, "medicine":90}},
-        {"id":"Z03","population":10000000, "severity":1, "needs":{"food":100, "water":70, "medicine":100}},
+        {"id":"Z03","population":3500, "severity":1, "needs":{"food":100, "water":70, "medicine":100}},
         {"id":"Z04","population":5000, "severity":0.3, "needs":{"food":2000, "water":500, "medicine":60}},
         {"id":"Z05","population":4000, "severity":0.4, "timeLimit":8, "needs":{"food":300, "water":580, "medicine":110}},
         {"id":"Z06","population":3500, "severity":0.5, "timeLimit":4, "needs":{"food":400, "medicine":10}},
