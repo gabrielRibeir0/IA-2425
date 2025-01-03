@@ -6,17 +6,11 @@ class VehicleType(Enum):
     BOAT = "boat"
     HELICOPTER = "helicopter"
     
-class Status(Enum):
-    MOVING = 0
-    INZONE = 1
-    AVAILABLE = 2
-    FINISHED = 3
-    
 class Vehicle:
     def __init__(self, id, type):
         self.id = id
         self.weight = 0
-        self.status = Status.AVAILABLE
+        self.available = True
         self.type = type
         if self.type == VehicleType.CAR:
             self.maxGas = 60
@@ -47,16 +41,16 @@ class Vehicle:
     #se calhar fazia sentido a velocidade variar consoante o peso que se leva
 
     def startTrip(self, finalDestination, nextDestination):
-        self.status = Status.MOVING
+        self.status = False
         self.weight = self.maxCapacity
         self.finalDestination = finalDestination
         self.nextDestination = nextDestination
         self.travelledDistance = 0
 
-
-    def validate_weight(self, packageweight):
-        if self.maxCapacity - self.weight >= packageweight:
+    def validate_weight(self, destination_needs):
+        if self.maxCapacity >= destination_needs:
             return True
+        return False
 
     def max_mileage(self):
         return self.gas/self.gasConsume

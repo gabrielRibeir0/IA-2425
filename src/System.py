@@ -9,74 +9,54 @@ class System:
         self.zones = {}
         for zone in self.graph.nodes:
             self.zones[zone.id] = zone
-        self.packages = []
         self.vehicles = [Vehicle.Vehicle(1, Vehicle.VehicleType.CAR), Vehicle.Vehicle(2, Vehicle.VehicleType.TRUCK), Vehicle.Vehicle(3, Vehicle.VehicleType.CAR)]
-        self.unserviced_zones = list(zone.id for zone in self.zones.values()
-                                if zone.isUnserviced())
-        self.unserviced_zones.sort(key=lambda z: self.zones[z].priority)
-        self.vehiclePlannedRoutes = {} #
-        self.vehicleActualRoutes = {}
+        self.vehicleRoutes = {}
         self.vehicleSupplyZones = {}
         for vehicle in self.vehicles:
-            self.vehicleActualRoutes[vehicle.id] = []
-            self.vehiclePlannedRoutes[vehicle.id] = []
+            self.vehicleRoutes[vehicle.id] = []
     
-    def run(self):
-        turno = 0
+    def run(self, algorithm, criteria):
+        apply_dinamic_conditions() #TODO gerar as condições dinamicas
 
-        while self.unserviced_zones:
-            turno += 1
-            #mexer os veiculos que ja se mexeram
+        sorted_zones = [zone.id for zone in self.zones.values() if zone.isUnserviced()]
+        if criteria == "Tempo":
+            sorted_zones.sort(key=lambda zone_id: self.zones[zone_id].timeLimit)
+        elif criteria == "Prioridade":
+            sorted_zones.sort(key=lambda zone_id: self.zones[zone_id].priority, reverse=True)
+
+        for destination_zone in sorted_zones:
+            if not self.zones[destination_zone].isUnserviced():
+                continue
+
+            bestVehicle = None
+            bestGasConsume = float('inf')
+
             for vehicle in self.vehicles:
-                if vehicle.status == Vehicle.Status.MOVING:
-                        if vehicle.travelledDistance + vehicle.averageSpeed >= self.graph.get_arc_cost(vehicle.currentLocation, vehicle.nextDestination):
-                            vehicle.currentLocation = vehicle.nextDestination
-                            vehicle.status = Vehicle.Status.INZONE
-                            vehicle.travelledDistance = 0
-                        else:
-                            vehicle.travelledDistance += vehicle.averageSpeed
-                elif vehicle.status == Vehicle.Status.INZONE:
-                    print(self.vehiclePlannedRoutes[vehicle.id])
-                    self.vehicleActualRoutes[vehicle.id].append(vehicle.currentLocation)
-                    if vehicle.currentLocation != vehicle.finalDestination:
-                        self.reRoute(vehicle)
-                        if vehicle.id in self.vehicleSupplyZones and vehicle.currentLocation in self.vehicleSupplyZones[vehicle.id] and self.vehicleSupplyZones[vehicle.id][vehicle.currentLocation] > 0:
-                            vehicle.weight -= self.vehicleSupplyZones[vehicle.id][vehicle.currentLocation]
-                            self.zones[vehicle.currentLocation].current_supplies += self.vehicleSupplyZones[vehicle.id][vehicle.currentLocation]
-                            self.vehicleSupplyZones[vehicle.id][vehicle.currentLocation] = 0
-                        vehicle.nextDestination = self.vehiclePlannedRoutes[vehicle.id][1]
-                        self.vehiclePlannedRoutes[vehicle.id].pop(0)
-                        vehicle.status = Vehicle.Status.MOVING
-                    else:
-                        vehicle.weight -= self.vehicleSupplyZones[vehicle.id][vehicle.currentLocation]
-                        self.zones[vehicle.currentLocation].current_supplies = self.zones[vehicle.currentLocation].needs
-                        vehicle.status = Vehicle.Status.FINISHED 
-
-            #por veiculos parados na base a mexer
-            for zoneId in self.unserviced_zones:
-                bestVehicle = None
-                bestGasConsume = float('inf')
-                for vehicle in self.vehicles:
-                    if vehicle.status == Vehicle.Status.AVAILABLE and vehicle.maxCapacity >= self.zones[zoneId].getWeightNeeds():
-                        print("Veiculo"+str(vehicle.id))
-                        thisRoute = self.graph.procura_aStar(zoneId, vehicle.currentLocation).reverse()
-                        if thisRoute is not None:
-                            distance = self.graph.calculate_cost(self.vehiclePlannedRoutes[vehicle.id])
-                            if bestVehicle is None or vehicle.gasConsume * distance < bestGasConsume:
-                                self.vehiclePlannedRoutes[bestVehicle.id] = []
-                                bestVehicle = vehicle
-                                bestGasConsume = vehicle.gasConsume * distance
-                                self.vehiclePlannedRoutes[bestVehicle.id].extend(thisRoute[1:])
-                if bestVehicle is not None:
-                    print("COISO:" + self.vehiclePlannedRoutes[bestVehicle.id])
-                    bestVehicle.startTrip(zoneId, self.vehiclePlannedRoutes[bestVehicle.id][1])
-                    self.zones[zoneId].expected_supplies = self.zones[zoneId].needs
-                    self.vehicleSupplyZones[bestVehicle.id] = {zoneId: self.zones[zoneId].needs}
-                    self.vehiclePlannedRoutes[bestVehicle.id].pop(0)
-                    self.unserviced_zones.remove(zoneId)
-                    self.vehicleActualRoutes[bestVehicle.id].append(bestVehicle.currentLocation)
-                    remainingWeight = bestVehicle.maxCapacity - self.zones[zoneId].getWeightNeeds()
-                    self.supplyOtherZones(bestVehicle.id, remainingWeight)
+                if not vehicle.available or not vehicle.validate_weight(self.zones[destination_zone].getWeightNeeds()):
+                    continue
+                
+                route = self.graph.get_route(destination_zone, vehicle.currentLocation, algorithm).reverse() #TODO ver coiso que a julia disse de correr todos para depois comparar
+                if route is None:
+                    continue
+                
+                distance = self.graph.calculate_cost(route)
+                if vehicle.travel_time(distance) <= self.zones[destination_zone].timeLimit: #TODO juntar as condições aqui
+                    if bestVehicle is None or vehicle.gasConsume * distance < bestGasConsume:
+                        if bestVehicle is not None:
+                            self.vehicleRoutes[bestVehicle.id] = []
+                        bestVehicle = vehicle
+                        bestGasConsume = vehicle.gasConsume * distance
+                        self.vehicleRoutes[bestVehicle.id] = route
+            #TODO fiqei aqui
+            if bestVehicle is not None:
+                bestVehicle.startTrip(zoneId, self.vehiclePlannedRoutes[bestVehicle.id][1])
+                self.zones[zoneId].expected_supplies = self.zones[zoneId].needs
+                self.vehicleSupplyZones[bestVehicle.id] = {zoneId: self.zones[zoneId].needs}
+                self.vehiclePlannedRoutes[bestVehicle.id].pop(0)
+                self.unserviced_zones.remove(zoneId)
+                self.vehicleActualRoutes[bestVehicle.id].append(bestVehicle.currentLocation)
+                remainingWeight = bestVehicle.maxCapacity - self.zones[zoneId].getWeightNeeds()
+                self.supplyOtherZones(bestVehicle.id, remainingWeight)
 
 
     def reRoute(self, vehicle):

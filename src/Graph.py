@@ -205,6 +205,15 @@ class Graph:
     # ver se faz sentido as alterações do clima alterarem a distancia(de forma a demorar mais)
     # ou se faz mais sentido alterarem a velocidade média dos veículos
 
+    def get_route(self, start, end, algorithm):
+        if algorithm == "DFS":
+            return self.procura_DFS(start, end)
+        if algorithm == "BFS":
+            return self.procura_BFS(start, end)
+        if algorithm == "Greedy":
+            return self.procura_Greedy(start, end)
+        if algorithm == "A*":
+            return self.procura_aStar(start, end)
     # Algoritmos de procura
 
     def procura_DFS(self, start, end, path=[], visited=set()):

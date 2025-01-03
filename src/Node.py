@@ -1,18 +1,23 @@
 class Node:
-    def __init__(self, id, population, priority, timeLimit, needs):
+    def __init__(self, id, population, priority, timeLimit, needs): #TODO ver questao de poder haver reabastecimento em algumas zonas
         self.id = id
         self.population = population
-        self.priority = priority
-        self.timeLimit = timeLimit
-        if needs is None: 
+        self.priority = priority #TODO ver questao prioridade, gravidade e poopulacao
+        if timeLimit is None:
+            self.timeLimit = float('inf')
+        else:
+            self.timeLimit = timeLimit
+        if needs is None:
             self.needs = 0
-        else: 
-            self.needs = needs
+        else:
+            self.needs = needs #TODO ver questao de haver varios tipos de necessidades
         self.current_supplies = 0
-        self.expected_supplies = 0
 
     def isUnserviced(self):
-        if self.current_supplies < self.needs and self.expected_supplies < self.needs:
+        if self.id == "base":
+            return False
+
+        if self.current_supplies < self.needs:
             return True
         return False
 
