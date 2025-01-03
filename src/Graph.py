@@ -233,9 +233,15 @@ class Graph:
                         self.graph[edge[0]][j] = new_rev_edge
                         break
         
+        result_text = ""
         for node in self.graph:
             for edge in self.graph[node]:
-                print("Condição do caminho entre " + node + " e " + edge[0] + ":" + str(edge[3]))
+                if edge[3] is not None:
+                    cond = edge[3].name
+                else:
+                    cond = 'Normal'
+                result_text += f"Condição do caminho entre {node} e {edge[0]} : {cond}\n"
+        return result_text
 
     # Algoritmos de procura
 
@@ -255,7 +261,6 @@ class Graph:
         return None
 
     def procura_BFS(self, start, end, vehicle):
-
         visited = set()
         fila = Queue()
 
@@ -266,28 +271,26 @@ class Graph:
         parent[start] = None
 
         path_found = False
-
         while not fila.empty() and path_found == False:
-            node_atual = fila.get()
-            if node_atual == end:
+            nodo_atual = fila.get()
+            if nodo_atual == end:
                 path_found = True
             else:
-                for (adjacent, type, peso, condition) in self.graph[node_atual]:
-                    if adjacent not in visited and self.edgeisCompatible(node_atual, adjacent, vehicle):
-                        fila.put(adjacent)
-                        parent[adjacent] = node_atual
-                        visited.add(adjacent)
+                for (adjacente, type, peso, condition) in self.graph[nodo_atual]:
+                    if adjacente not in visited and self.edgeisCompatible(nodo_atual, adjacente, vehicle):
+                        fila.put(adjacente)
+                        parent[adjacente] = nodo_atual
+                        visited.add(adjacente)
+
         path = []
         if path_found:
             path.append(end)
             while parent[end] is not None:
                 path.append(parent[end])
-                parent = parent[end]
                 end = parent[end]
-
             path.reverse()
-            cost = self.calculate_cost(path)
-            return (path, cost)
+            custo = self.calculate_cost(path)
+            return (path, custo)
         else:
             return None
         

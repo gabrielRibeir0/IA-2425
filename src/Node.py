@@ -46,3 +46,8 @@ class Node:
             if self.current_supplies[need] < self.needs[need]:
                 quantity = self.needs[need] - self.current_supplies[need]
                 yield (need, quantity)
+
+
+    def reset(self):
+        for need in self.needs:
+            self.current_supplies[need] = 0

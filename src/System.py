@@ -1,6 +1,7 @@
 from Graph import Graph
 import Vehicle
-import os
+
+algorithms = {"CONDITIONS":"", "A*": "", "Greedy": "", "DFS": "", "BFS": ""}
 
 class System:
     def __init__(self):
@@ -15,8 +16,9 @@ class System:
         for vehicle in self.vehicles:
             self.vehicleRoutes[vehicle.id] = []
     
-    def run(self, algorithm, criteria):
-        self.graph.apply_dinamic_conditions()
+    def run(self, criteria):
+        text = self.graph.apply_dinamic_conditions()
+        algorithms["CONDITIONS"] = text
 
         sorted_zones = [zone.id for zone in self.zones.values() if zone.isUnserviced()]
         if criteria == "Tempo":
@@ -24,6 +26,16 @@ class System:
         elif criteria == "Prioridade":
             sorted_zones.sort(key=lambda zone_id: self.zones[zone_id].priority, reverse=True)
 
+        for algorithm in algorithms:
+            if algorithm == "CONDITIONS":
+                continue
+            self.startSearch(sorted_zones, algorithm)
+            self.reset()
+
+        return algorithms
+    
+
+    def startSearch(self, sorted_zones, algorithm):
         for destination_zone in sorted_zones:
             if not self.zones[destination_zone].isUnserviced():
                 continue
@@ -70,15 +82,9 @@ class System:
                 (numberServicedZones, totalWeightSupplied) = self.supplyOtherZones(bestVehicle.id, remainingWeight)
                 bestVehicle.carryingWeight = totalWeightSupplied + self.zones[destination_zone].getWeightNeeds()
         
-        for v in self.vehicles:
-            if self.vehicleRoutes[v.id]:
-                print("Veículo " + str(v.id) + " (" + str(v.type.name) + ") :")
-                print("  Rota: " + str(self.vehicleRoutes[v.id]))
-                custo = self.graph.calculate_cost(self.vehicleRoutes[v.id])
-                print("Custo: " + str(custo) + "km" + " e gasto de " + str(v.gasConsume * custo) + "l de combustível")
-                print("  Entregou suprimentos em: " + str(self.vehicleSupplyZones[v.id]) + "\n")
-
-
+        result = self.getResults()
+        algorithms[algorithm] = result
+        
 
     def supplyOtherZones(self, bestVehicleId, remainingWeight, test=False):
         numberServicedZones = 0
@@ -104,3 +110,27 @@ class System:
                     if remainingWeight <= 0:
                         break
         return (numberServicedZones, totalWeightSupplied)
+    
+    def reset(self):
+        for vehicle in self.vehicles:
+            vehicle.available = True
+            vehicle.carryingWeight = 0
+            self.vehicleRoutes[vehicle.id] = []
+            self.vehicleSupplyZones[vehicle.id] = {}
+        for zone in self.zones.values():
+            zone.reset()
+    
+
+    def getResults(self):
+        result_text = ""
+        
+        for v in self.vehicles:
+            if self.vehicleRoutes[v.id]:
+                result_text += f"Veículo {str(v.id)} ({str(v.type.name)}):\n"
+                result_text += f"  Rota: {str(self.vehicleRoutes[v.id])}\n"
+                
+                custo = self.graph.calculate_cost(self.vehicleRoutes[v.id])
+                result_text += f"Custo: {str(custo)}km e gasto de {str(v.gasConsume * custo)}l de combustível\n"
+                result_text += f"  Entregou suprimentos em: {str(self.vehicleSupplyZones[v.id])}\n\n"
+        
+        return result_text
