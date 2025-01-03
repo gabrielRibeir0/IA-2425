@@ -1,10 +1,10 @@
 def mainMenu(system):
-    while True:
+    #while True:
         print("\n--- Menu Principal ---\n")
         print("1 - Iniciar simulação")
         print("0 - Sair")
-
-        try:
+        system.run()
+        '''try:
             opcao = int(input("\nIntroduza a sua opção - "))
         except ValueError:
             opcao = -1
@@ -16,4 +16,4 @@ def mainMenu(system):
             case 1:
                 system.run()
             case _:
-                print("Opção inválida")
+                print("Opção inválida")'''

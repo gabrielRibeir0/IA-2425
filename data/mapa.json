@@ -13,6 +13,7 @@
         {"source":"Z2", "target":"Z4", "distance":10, "type":"road"}
     ],
     "heuristics":[
+        {"node":"base", "value":0},
         {"node":"Z1", "value":15},
         {"node":"Z2", "value":10},
         {"node":"Z3", "value":20},

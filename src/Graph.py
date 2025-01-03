@@ -63,6 +63,7 @@ class Graph:
 
     def add_heuristic(self, node, estima):
         if node in self.nodes:
+            print("Adiciona heuristica" + node)
             self.heuristics[node] = estima
 
     def heuristic(self):

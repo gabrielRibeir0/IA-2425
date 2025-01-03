@@ -35,7 +35,8 @@ class System:
                             vehicle.travelledDistance = 0
                         else:
                             vehicle.travelledDistance += vehicle.averageSpeed
-                elif Vehicle.Status.INZONE:
+                elif vehicle.status == Vehicle.Status.INZONE:
+                    print(self.vehiclePlannedRoutes[vehicle.id])
                     self.vehicleActualRoutes[vehicle.id].append(vehicle.currentLocation)
                     if vehicle.currentLocation != vehicle.finalDestination:
                         self.reRoute(vehicle)
@@ -56,8 +57,9 @@ class System:
                 bestVehicle = None
                 bestGasConsume = float('inf')
                 for vehicle in self.vehicles:
-                    if vehicle.status == Vehicle.Status.AVAILABLE and vehicle.maxCapacity >= self.zones[zoneId].getTotalWeightNeeds():
-                        thisRoute = self.graph.a_star_search(zoneId, vehicle.currentLocation, vehicle).reverse()
+                    if vehicle.status == Vehicle.Status.AVAILABLE and vehicle.maxCapacity >= self.zones[zoneId].getWeightNeeds():
+                        print("Veiculo"+str(vehicle.id))
+                        thisRoute = self.graph.procura_aStar(zoneId, vehicle.currentLocation).reverse()
                         if thisRoute is not None:
                             distance = self.graph.calculate_cost(self.vehiclePlannedRoutes[vehicle.id])
                             if bestVehicle is None or vehicle.gasConsume * distance < bestGasConsume:
@@ -66,6 +68,7 @@ class System:
                                 bestGasConsume = vehicle.gasConsume * distance
                                 self.vehiclePlannedRoutes[bestVehicle.id].extend(thisRoute[1:])
                 if bestVehicle is not None:
+                    print("COISO:" + self.vehiclePlannedRoutes[bestVehicle.id])
                     bestVehicle.startTrip(zoneId, self.vehiclePlannedRoutes[bestVehicle.id][1])
                     self.zones[zoneId].expected_supplies = self.zones[zoneId].needs
                     self.vehicleSupplyZones[bestVehicle.id] = {zoneId: self.zones[zoneId].needs}
@@ -78,7 +81,7 @@ class System:
 
     def reRoute(self, vehicle):
         if(self.graph.checkBlockedEdges(self.vehiclePlannedRoutes[vehicle.id])):
-            newRoute = self.a_star_search(vehicle.currentLocation, vehicle.destination, vehicle)
+            newRoute = self.procura_aStar(vehicle.destination, vehicle.currentLocation)
             if newRoute is None:
                 return False
             blockedZones = list(set(self.vehiclePlannedRoutes[vehicle.id]) - set(newRoute))

@@ -20,22 +20,22 @@ class Vehicle:
         self.type = type
         if self.type == VehicleType.CAR:
             self.maxGas = 60
-            self.maxcapacity = 400 #kg
+            self.maxCapacity = 400 #kg
             self.averageSpeed = 90 #km/h
             self.gasConsume = 0.08 #l/km
         elif self.type == VehicleType.TRUCK:
             self.maxGas = 450
-            self.maxcapacity = 10000
+            self.maxCapacity = 10000
             self.averageSpeed = 60
             self.gasConsume = 0.4
         elif self.type == VehicleType.BOAT:
             self.maxGas = 140
-            self.maxcapacity = 1000
+            self.maxCapacity = 1000
             self.averageSpeed = 40
             self.gasConsume = 0.5
         else:
             self.maxGas = 300
-            self.maxcapacity = 500
+            self.maxCapacity = 500
             self.averageSpeed = 250
             self.gasConsume = 1
         self.gas = self.maxGas
@@ -48,14 +48,14 @@ class Vehicle:
 
     def startTrip(self, finalDestination, nextDestination):
         self.status = Status.MOVING
-        self.weight = self.maxcapacity
+        self.weight = self.maxCapacity
         self.finalDestination = finalDestination
         self.nextDestination = nextDestination
         self.travelledDistance = 0
 
 
     def validate_weight(self, packageweight):
-        if self.maxcapacity - self.weight >= packageweight:
+        if self.maxCapacity - self.weight >= packageweight:
             return True
 
     def max_mileage(self):
