@@ -119,10 +119,10 @@ class Graph:
         for node in loaded_data["nodes"]:
             id = node.get("id")
             population = node.get("population")
-            priority = node.get("priority")
+            severity = node.get("severity")
             timeLimit = node.get("timeLimit")
             needs = node.get("needs")
-            newNode = Node(id, population, priority, timeLimit, needs)
+            newNode = Node(id, population, severity, timeLimit, needs)
             self.nodes.append(newNode)
             self.graph[id] = []
 

@@ -1,8 +1,15 @@
+import math
+
 class Node:
-    def __init__(self, id, population, priority, timeLimit, needs): #TODO ver questao de poder haver reabastecimento em algumas zonas
+    def __init__(self, id, population, severity, timeLimit, needs):
         self.id = id
-        self.population = population
-        self.priority = priority #TODO ver questao prioridade, gravidade e poopulacao
+        if id == "base":
+            self.priority = 0
+        else:
+            normalized_population = math.log10(population + 1) / 7.0
+            weighted_severity = severity ** 2
+            self.priority = (weighted_severity * 0.6) + (normalized_population * 0.4)
+
         if timeLimit is None:
             self.timeLimit = float('inf')
         else:
