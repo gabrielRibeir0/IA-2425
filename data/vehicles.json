@@ -16,6 +16,9 @@
         {"id":14, "tipo":"car"},
         {"id":15, "tipo":"boat"},
         {"id":16, "tipo":"truck"},
-        {"id":17, "tipo":"truck"}
+        {"id":17, "tipo":"truck"},
+        {"id":18, "tipo":"car"},
+        {"id":19, "tipo":"car"},
+        {"id":20, "tipo":"helicopter"}
     ]
 }
