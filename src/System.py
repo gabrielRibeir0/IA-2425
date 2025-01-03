@@ -130,7 +130,7 @@ class System:
                 result_text += f"  Rota: {str(self.vehicleRoutes[v.id])}\n"
                 
                 custo = self.graph.calculate_cost(self.vehicleRoutes[v.id])
-                result_text += f"Custo: {str(custo)}km e gasto de {str(v.gasConsume * custo)}l de combustível\n"
+                result_text += f"  Custo: {str(custo)}km e gasto de {str(v.gasConsume * custo)}l de combustível\n"
                 result_text += f"  Entregou suprimentos em: {str(self.vehicleSupplyZones[v.id])}\n\n"
         
         return result_text
