@@ -1,0 +1,21 @@
+{
+    "vehicles":[
+        {"id":1, "tipo":"car"},
+        {"id":2, "tipo":"boat"},
+        {"id":3, "tipo":"truck"},
+        {"id":4, "tipo":"car"},
+        {"id":5, "tipo":"car"},
+        {"id":6, "tipo":"boat"},
+        {"id":7, "tipo":"car"},
+        {"id":8, "tipo":"helicopter"},
+        {"id":9, "tipo":"helicopter"},
+        {"id":10, "tipo":"truck"},
+        {"id":11, "tipo":"car"},
+        {"id":12, "tipo":"boat"},
+        {"id":13, "tipo":"car"},
+        {"id":14, "tipo":"car"},
+        {"id":15, "tipo":"boat"},
+        {"id":16, "tipo":"truck"},
+        {"id":17, "tipo":"truck"}
+    ]
+}

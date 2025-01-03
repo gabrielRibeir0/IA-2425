@@ -1,4 +1,6 @@
 from enum import Enum
+import os
+import json
 
 class VehicleType(Enum):
     CAR = "car"
@@ -32,20 +34,9 @@ class Vehicle:
             self.maxCapacity = 500
             self.averageSpeed = 250
             self.gasConsume = 1
-        self.gas = self.maxGas
-        self.currentLocation = "base"
-        self.nextDestination = None
-        self.finalDestination = None
-        self.travelledDistance = 0
         
     #se calhar fazia sentido a velocidade variar consoante o peso que se leva
 
-    def startTrip(self, finalDestination, nextDestination):
-        self.status = False
-        self.weight = self.maxCapacity
-        self.finalDestination = finalDestination
-        self.nextDestination = nextDestination
-        self.travelledDistance = 0
 
     def validate_weight(self, destination_needs):
         if self.maxCapacity >= destination_needs:
@@ -60,3 +51,23 @@ class Vehicle:
 
     def can_deliver(self,packageweight,distance,time):
         return self.validate_weight(packageweight) and self.max_mileage()>=distance and self.travel_time(distance)<=time
+    
+def loadVehicles():
+    filepath = os.path.join(os.path.dirname(__file__), '..', 'data', 'vehicles.json')
+
+    with open(filepath, 'r') as file:
+        loaded_data = json.load(file)
+
+    list = []
+    for vehicle in loaded_data["vehicles"]:
+        if vehicle['tipo'] == "car":
+            type = VehicleType.CAR
+        elif vehicle['tipo'] == "truck":
+            type = VehicleType.TRUCK
+        elif vehicle['tipo'] == "boat":
+            type = VehicleType.BOAT
+        else:
+            type = VehicleType.HELICOPTER
+        v = Vehicle(vehicle['id'], type)
+        list.append(v)
+    return list
