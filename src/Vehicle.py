@@ -21,7 +21,7 @@ class Vehicle:
             self.gasConsume = 0.08 #l/km
         elif self.type == VehicleType.TRUCK:
             self.maxGas = 450
-            self.maxCapacity = 10000
+            self.maxCapacity = 4000
             self.averageSpeed = 60
             self.gasConsume = 0.4
         elif self.type == VehicleType.BOAT:
@@ -34,8 +34,7 @@ class Vehicle:
             self.maxCapacity = 500
             self.averageSpeed = 250
             self.gasConsume = 1
-        
-    #se calhar fazia sentido a velocidade variar consoante o peso que se leva
+        self.carryingWeight = 0
 
 
     def validate_weight(self, destination_needs):

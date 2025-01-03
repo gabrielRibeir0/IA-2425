@@ -16,7 +16,7 @@ class System:
             self.vehicleRoutes[vehicle.id] = []
     
     def run(self, algorithm, criteria):
-        #apply_dinamic_conditions() #TODO gerar as condições dinamicas
+        self.graph.apply_dinamic_conditions()
 
         sorted_zones = [zone.id for zone in self.zones.values() if zone.isUnserviced()]
         if criteria == "Tempo":
@@ -41,9 +41,10 @@ class System:
                     continue
                 (route, distance) = result
                 route.reverse()
+                
                 gas_consumed = vehicle.gasConsume * distance
-                if self.graph.travel_time(route, vehicle.averageSpeed) <= self.zones[destination_zone].timeLimit and gas_consumed <= vehicle.maxGas:
-                    (numberServicedZones, totalWeightSupplied) = self.supplyOtherZones(vehicle.id, vehicle.maxCapacity - self.zones[destination_zone].getWeightNeeds(), True)
+                (numberServicedZones, totalWeightSupplied) = self.supplyOtherZones(vehicle.id, vehicle.maxCapacity - self.zones[destination_zone].getWeightNeeds(), True)
+                if self.graph.travel_time(route, vehicle.averageSpeed, totalWeightSupplied + self.zones[destination_zone].getWeightNeeds()) <= self.zones[destination_zone].timeLimit and gas_consumed <= vehicle.maxGas:
                     ratioZonesGas = numberServicedZones / gas_consumed
                     if ratioZonesGas > bestRatio[0]:
                         bestVehicle = vehicle
@@ -66,13 +67,17 @@ class System:
                 self.vehicleRoutes[bestVehicle.id] = bestRoute
                 self.vehicleSupplyZones[bestVehicle.id] = {destination_zone: self.zones[destination_zone].needs}
                 remainingWeight = bestVehicle.maxCapacity - self.zones[destination_zone].getWeightNeeds()
-                self.supplyOtherZones(bestVehicle.id, remainingWeight)
+                (numberServicedZones, totalWeightSupplied) = self.supplyOtherZones(bestVehicle.id, remainingWeight)
+                bestVehicle.carryingWeight = totalWeightSupplied + self.zones[destination_zone].getWeightNeeds()
         
         for v in self.vehicles:
             if self.vehicleRoutes[v.id]:
                 print("Veículo " + str(v.id) + " (" + str(v.type.name) + ") :")
-                print("Rota: " + str(self.vehicleRoutes[v.id]))
-                print("Entregou suprimentos em: " + str(self.vehicleSupplyZones[v.id]) + "\n")
+                print("  Rota: " + str(self.vehicleRoutes[v.id]))
+                custo = self.graph.calculate_cost(self.vehicleRoutes[v.id])
+                print("Custo: " + str(custo) + "km" + " e gasto de " + str(v.gasConsume * custo) + "l de combustível")
+                print("  Entregou suprimentos em: " + str(self.vehicleSupplyZones[v.id]) + "\n")
+
 
 
     def supplyOtherZones(self, bestVehicleId, remainingWeight, test=False):

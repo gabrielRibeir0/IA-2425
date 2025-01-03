@@ -1,10 +1,11 @@
 import math
 import os
 import json
-from queue import Queue
-from enum import Enum
+import random
 import networkx as nx
 import Vehicle
+from queue import Queue
+from enum import Enum
 from matplotlib import pyplot as plt
 from Node import Node
 
@@ -154,20 +155,26 @@ class Graph:
         if algorithm == "A*":
             return self.procura_aStar(start, end, vehicle)
     
-    def actual_speed(self, start, end, speed):
+    
+    def actual_speed(self, start, end, speed, vehicle_weight):
         actual_speed = speed
         a = self.graph[start]
-        for (node, type, weight, condition) in a:
-            if node == end and condition is not None:
+        for (node, type, cost, condition) in a:
+            if node == end:
+                if condition is not None:
                     actual_speed -= actual_speed * condition.value
+                
+                twenty_kilo_pieces = vehicle_weight / 20
+                weight_penalty = 0.015 * twenty_kilo_pieces
+                actual_speed -= actual_speed * weight_penalty
                     
         return actual_speed
 
-    def travel_time(self, path, speed):
+    def travel_time(self, path, speed, veicle_weight):
         time = 0
         i = 0
         while i + 1 < len(path):
-            actual_speed = self.actual_speed(path[i], path[i + 1], speed)
+            actual_speed = self.actual_speed(path[i], path[i + 1], speed, veicle_weight)
             time = time + self.get_arc_cost(path[i], path[i + 1]) / actual_speed
             i = i + 1
         return time
@@ -185,6 +192,50 @@ class Graph:
                 if not type == TerrainType.WATER and vehicle.type == Vehicle.VehicleType.BOAT:
                     return False
         return True
+    
+    def apply_dinamic_conditions(self):
+        thresholds = {
+            CONDITIONS.RAIN: 0.15,  # 0 -> 0.15
+            CONDITIONS.STRONG_RAIN: 0.15 + 0.10,  # 0.15 -> 0.23
+            CONDITIONS.SNOW: 0.23 + 0.08,  # 0.23 -> 0.31
+            CONDITIONS.BLOCKED: 0.31 + 0.04,  # 0.31 -> 0.36
+            'normal': 1.0  # 0.36 t-> 1.0
+        }
+
+        visited_edges = set()
+    
+        for node in self.graph:
+            for i, edge in enumerate(self.graph[node]):
+                edge_pair = tuple(sorted([node, edge[0]]))
+                
+                if edge_pair in visited_edges:
+                    continue
+                    
+                visited_edges.add(edge_pair)
+                rand = random.random()
+                
+                new_condition = None
+                if rand < thresholds[CONDITIONS.RAIN]:
+                    new_condition = CONDITIONS.RAIN
+                elif rand < thresholds[CONDITIONS.STRONG_RAIN]:
+                    new_condition = CONDITIONS.STRONG_RAIN
+                elif rand < thresholds[CONDITIONS.SNOW]:
+                    new_condition = CONDITIONS.SNOW
+                elif rand < thresholds[CONDITIONS.BLOCKED]:
+                    new_condition = CONDITIONS.BLOCKED
+                
+                new_edge = edge[:-1] + (new_condition,)
+                self.graph[node][i] = new_edge
+                
+                for j, rev_edge in enumerate(self.graph[edge[0]]):
+                    if rev_edge[0] == node:
+                        new_rev_edge = rev_edge[:-1] + (new_condition,)
+                        self.graph[edge[0]][j] = new_rev_edge
+                        break
+        
+        for node in self.graph:
+            for edge in self.graph[node]:
+                print("Condição do caminho entre " + node + " e " + edge[0] + ":" + str(edge[3]))
 
     # Algoritmos de procura
 

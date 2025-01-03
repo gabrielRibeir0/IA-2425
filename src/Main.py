@@ -3,7 +3,7 @@ from Menu import mainMenu
 
 def main():
     system = System()
-    #system.graph.draw()
+    #1system.graph.draw()
 
     mainMenu(system)
 

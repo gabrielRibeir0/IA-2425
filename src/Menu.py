@@ -19,14 +19,11 @@ def mainMenu(system):
                 print("Opção inválida")
 
 def menuEscolhas(system):
-    #TODO ver que algoritmos temos
     print("\n--- Algoritmo ---\n")
     print("1 - A*")
     print("2 - Greedy")
     print("3 - DFS")
     print("4 - BFS")
-    print("5 - Dijkstra")
-    print("6 - Floyd-Warshall")
     print("0 - Voltar")
 
     try:
@@ -45,10 +42,6 @@ def menuEscolhas(system):
             algoritmo = "DFS"
         case 4:
             algoritmo = "BFS"
-        case 5:
-            algoritmo = "Dijkstra"
-        case 6:
-            algoritmo = "Floyd-Warshall"
         case _:
             print("Opção inválida")
             return
